@@ -1,0 +1,82 @@
+name: Check upstream versions
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # daily at 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check-open5gs:
+    name: Check Open5GS upstream
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Get latest Open5GS release
+        id: latest
+        run: |
+          LATEST=$(curl -sf \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/open5gs/open5gs/releases/latest" \
+            | jq -r '.tag_name')
+          echo "tag=$LATEST" >> "$GITHUB_OUTPUT"
+
+      - name: Get pinned tag
+        id: pinned
+        run: echo "tag=$(jq -r '.open5gs' upstream-versions.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Compare and open PR
+        if: steps.latest.outputs.tag != steps.pinned.outputs.tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LATEST: ${{ steps.latest.outputs.tag }}
+          PINNED: ${{ steps.pinned.outputs.tag }}
+        run: |
+          BRANCH="upstream/open5gs-${LATEST}"
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # check if PR branch already exists remotely
+          if git ls-remote --exit-code origin "refs/heads/${BRANCH}" &>/dev/null; then
+            echo "Branch ${BRANCH} already exists, skipping."
+            exit 0
+          fi
+
+          git checkout -b "${BRANCH}"
+
+          # update pinned tag
+          jq --arg tag "$LATEST" '.open5gs = $tag' upstream-versions.json \
+            > upstream-versions.json.tmp && mv upstream-versions.json.tmp upstream-versions.json
+
+          git add upstream-versions.json
+          git commit -m "chore: bump Open5GS upstream ${PINNED} → ${LATEST}"
+          git push origin "${BRANCH}"
+
+          cat > /tmp/pr-body.md << PRBODY
+## Upstream update
+
+Open5GS released a new tag.
+
+| | Tag |
+|---|---|
+| Previous | \`${PINNED}\` |
+| New | \`${LATEST}\` |
+
+## Checklist before merging
+- [ ] Review Open5GS changelog for breaking changes
+- [ ] Verify patches in \`nfs/smf/patches/\` still apply cleanly
+- [ ] CI builds all NFs successfully
+- [ ] Smoke-test SMF \`/session-info\` endpoint
+PRBODY
+
+          gh pr create \
+            --title "chore: bump Open5GS upstream ${PINNED} -> ${LATEST}" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "${BRANCH}"
