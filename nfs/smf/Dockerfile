@@ -34,7 +34,7 @@ RUN cd /src/open5gs && \
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y \
-    libsctp1 libgnutls30 libgcrypt20 libssl3 libidn2-0 libidn11 \
+    libsctp1 libgnutls30 libgcrypt20 libssl3 libidn2-0 \
     libmongoc-1.0-0 libbson-1.0-0 libyaml-0-2 libtalloc2 \
     libnghttp2-14 libmicrohttpd12 libtins4.0 \
     libcurl4 curl \
@@ -43,8 +43,9 @@ RUN apt-get update && apt-get install -y \
 ARG NF_NAME=smf
 COPY --from=builder /install/bin/open5gs-${NF_NAME}d /usr/local/bin/
 COPY --from=builder /install/lib/ /usr/local/lib/
-# copy gnutls curl variant that open5gs-smfd links against
+# libs with no matching runtime package on Ubuntu 22.04
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4* /usr/lib/x86_64-linux-gnu/
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libidn.so.12* /usr/lib/x86_64-linux-gnu/
 RUN ldconfig
 
 # All Open5GS NFs expose a management HTTP server on port 9090.
