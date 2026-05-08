@@ -30,7 +30,6 @@ ARG NF_NAME
 RUN cd /src/open5gs && \
     meson build --prefix=/install && \
     ninja -C build install && \
-    ldd /install/bin/open5gs-${NF_NAME}d && \
     sed -i 's/freeDiameter:/#freeDiameter:/' /install/etc/open5gs/${NF_NAME}.yaml
 
 FROM ubuntu:22.04
