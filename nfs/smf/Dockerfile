@@ -44,6 +44,7 @@ ARG NF_NAME=smf
 COPY --from=builder /install/bin/open5gs-${NF_NAME}d /usr/local/bin/
 COPY --from=builder /install/lib/ /usr/local/lib/
 COPY --from=builder /install/etc/open5gs/ /install/etc/open5gs/
+RUN mkdir -p /install/var/log/open5gs /install/var/run
 # libs with no matching runtime package on Ubuntu 22.04
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4* /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /usr/lib/x86_64-linux-gnu/libidn.so.12* /usr/lib/x86_64-linux-gnu/
