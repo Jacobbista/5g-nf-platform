@@ -5,12 +5,13 @@ ARG NF_NAME=smf
 
 FROM ubuntu:22.04 AS builder
 RUN apt-get update && apt-get install -y \
-    git cmake gcc g++ libsctp-dev libgnutls28-dev \
-    libgcrypt-dev libssl-dev libidn11-dev libmongoc-dev \
-    libbson-dev libmicrohttpd-dev libyaml-dev \
-    python3-pip meson ninja-build pkg-config \
+    build-essential git cmake flex bison \
+    libsctp-dev libgnutls28-dev libgcrypt-dev libssl-dev \
+    libidn11-dev libmongoc-dev libbson-dev libmicrohttpd-dev \
+    libnghttp2-dev libcurl4-gnutls-dev libtins-dev libtalloc-dev \
+    libyaml-dev python3-pip python3-setuptools python3-wheel \
+    meson ninja-build pkg-config \
     && rm -rf /var/lib/apt/lists/*
-RUN pip3 install meson
 
 ARG UPSTREAM_TAG
 RUN git clone --depth 1 --branch ${UPSTREAM_TAG} \
