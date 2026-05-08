@@ -58,6 +58,7 @@ jobs:
         with:
           context: nfs/smf
           push: true
+          provenance: false
           tags: |
             ghcr.io/${{ steps.owner.outputs.name }}/5g-nf-platform/smf:${{ steps.upstream.outputs.semver }}-p0
             ghcr.io/${{ steps.owner.outputs.name }}/5g-nf-platform/smf:latest

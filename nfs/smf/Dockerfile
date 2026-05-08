@@ -34,9 +34,9 @@ RUN cd /src/open5gs && \
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y \
     libsctp1 libgnutls30 libgcrypt20 libssl3 libidn2-0 \
-    libmongoc-1.0-0 libyaml-0-2 libtalloc2 \
+    libmongoc-1.0-0 libbson-1.0-0 libyaml-0-2 libtalloc2 \
     libnghttp2-14 libmicrohttpd12 libtins4.0 \
-    libcurl4 curl \
+    libcurl4-gnutls curl \
     && rm -rf /var/lib/apt/lists/*
 
 ARG NF_NAME=smf
