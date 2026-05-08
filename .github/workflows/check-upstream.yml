@@ -55,25 +55,10 @@ jobs:
             > upstream-versions.json.tmp && mv upstream-versions.json.tmp upstream-versions.json
 
           git add upstream-versions.json
-          git commit -m "chore: bump Open5GS upstream ${PINNED} → ${LATEST}"
+          git commit -m "chore: bump Open5GS upstream ${PINNED} -> ${LATEST}"
           git push origin "${BRANCH}"
 
-          cat > /tmp/pr-body.md << PRBODY
-## Upstream update
-
-Open5GS released a new tag.
-
-| | Tag |
-|---|---|
-| Previous | \`${PINNED}\` |
-| New | \`${LATEST}\` |
-
-## Checklist before merging
-- [ ] Review Open5GS changelog for breaking changes
-- [ ] Verify patches in \`nfs/smf/patches/\` still apply cleanly
-- [ ] CI builds all NFs successfully
-- [ ] Smoke-test SMF \`/session-info\` endpoint
-PRBODY
+          printf '## Upstream update\n\nOpen5GS released a new tag.\n\n| | Tag |\n|---|---|\n| Previous | `%s` |\n| New | `%s` |\n\n## Checklist before merging\n- [ ] Review Open5GS changelog for breaking changes\n- [ ] Verify patches in `nfs/smf/patches/` still apply cleanly\n- [ ] CI builds all NFs successfully\n- [ ] Smoke-test SMF `/session-info` endpoint\n' "${PINNED}" "${LATEST}" > /tmp/pr-body.md
 
           gh pr create \
             --title "chore: bump Open5GS upstream ${PINNED} -> ${LATEST}" \
