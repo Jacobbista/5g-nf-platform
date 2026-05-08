@@ -1,0 +1,192 @@
+diff --git a/lib/metrics/context.h b/lib/metrics/context.h
+index 5b1a920..8c955fa 100644
+--- a/lib/metrics/context.h
++++ b/lib/metrics/context.h
+@@ -85,6 +85,9 @@ ogs_metrics_server_t *ogs_metrics_server_add(
+ void ogs_metrics_server_remove(ogs_metrics_server_t *server);
+ void ogs_metrics_server_remove_all(void);
+ 
++typedef char *(*ogs_metrics_custom_url_handler_f)(const char *url);
++void ogs_metrics_set_custom_url_handler(ogs_metrics_custom_url_handler_f handler);
++
+ typedef struct ogs_metrics_spec_s ogs_metrics_spec_t;
+ void ogs_metrics_spec_init(ogs_metrics_context_t *ctx); 
+ void ogs_metrics_spec_final(ogs_metrics_context_t *ctx);
+diff --git a/lib/metrics/prometheus/context.c b/lib/metrics/prometheus/context.c
+index 9972c28..bde52e1 100644
+--- a/lib/metrics/prometheus/context.c
++++ b/lib/metrics/prometheus/context.c
+@@ -54,6 +54,13 @@ typedef struct ogs_metrics_inst_s {
+ static OGS_POOL(metrics_spec_pool, ogs_metrics_spec_t);
+ static OGS_POOL(metrics_server_pool, ogs_metrics_server_t);
+ 
++static ogs_metrics_custom_url_handler_f g_custom_url_handler = NULL;
++
++void ogs_metrics_set_custom_url_handler(ogs_metrics_custom_url_handler_f handler)
++{
++    g_custom_url_handler = handler;
++}
++
+ static int ogs_metrics_context_server_start(ogs_metrics_server_t *server);
+ static int ogs_metrics_context_server_stop(ogs_metrics_server_t *server);
+ 
+@@ -214,6 +221,17 @@ static _MHD_Result mhd_server_access_handler(void *cls, struct MHD_Connection *c
+         MHD_destroy_response(rsp);
+         return ret;
+     }
++    if (g_custom_url_handler) {
++        char *custom_buf = g_custom_url_handler(url);
++        if (custom_buf) {
++            rsp = MHD_create_response_from_buffer(
++                    strlen(custom_buf), custom_buf, MHD_RESPMEM_MUST_FREE);
++            MHD_add_response_header(rsp, "Content-Type", "application/json");
++            ret = MHD_queue_response(connection, MHD_HTTP_OK, rsp);
++            MHD_destroy_response(rsp);
++            return ret;
++        }
++    }
+     buf = "Bad Request\n";
+     rsp = MHD_create_response_from_buffer(strlen(buf), (void *)buf, MHD_RESPMEM_PERSISTENT);
+     ret = MHD_queue_response(connection, MHD_HTTP_BAD_REQUEST, rsp);
+diff --git a/lib/metrics/void/context.c b/lib/metrics/void/context.c
+index 38e8d1d..4b76605 100644
+--- a/lib/metrics/void/context.c
++++ b/lib/metrics/void/context.c
+@@ -102,3 +102,7 @@ void ogs_metrics_inst_reset(ogs_metrics_inst_t *inst)
+ void ogs_metrics_inst_add(ogs_metrics_inst_t *inst, int val)
+ {
+ }
++
++void ogs_metrics_set_custom_url_handler(ogs_metrics_custom_url_handler_f handler)
++{
++}
+diff --git a/src/smf/init.c b/src/smf/init.c
+index 7de506c..bfa4d0b 100644
+--- a/src/smf/init.c
++++ b/src/smf/init.c
+@@ -23,6 +23,7 @@
+ #include "pfcp-path.h"
+ #include "sbi-path.h"
+ #include "metrics.h"
++#include "session-info.h"
+ 
+ static ogs_thread_t *thread;
+ static void smf_main(void *data);
+@@ -74,6 +75,7 @@ int smf_initialize(void)
+     if (rv != OGS_OK) return rv;
+ 
+     ogs_metrics_context_open(ogs_metrics_self());
++    smf_session_info_handler_register();
+ 
+     rv = smf_fd_init();
+     if (rv != 0) return OGS_ERROR;
+diff --git a/src/smf/meson.build b/src/smf/meson.build
+index 12599f3..5b0b22c 100644
+--- a/src/smf/meson.build
++++ b/src/smf/meson.build
+@@ -67,6 +67,7 @@ libsmf_sources = files('''
+     ngap-handler.h
+     ngap-path.h
+     metrics.h
++    session-info.h
+ 
+     init.c
+     event.c
+@@ -106,6 +107,7 @@ libsmf_sources = files('''
+     ngap-handler.c
+     ngap-path.c
+     metrics.c
++    session-info.c
+ '''.split())
+ 
+ libsmf = static_library('smf',
+diff --git a/src/smf/session-info.c b/src/smf/session-info.c
+new file mode 100644
+index 0000000..fed4c51
+--- /dev/null
++++ b/src/smf/session-info.c
+@@ -0,0 +1,72 @@
++#include "ogs-app.h"
++#include "context.h"
++#include "session-info.h"
++
++static char *session_info_handler(const char *url)
++{
++    smf_ue_t *smf_ue = NULL;
++    smf_sess_t *sess = NULL;
++    char *out = NULL;
++    char *entries = NULL;
++    char *tmp = NULL;
++    bool first = true;
++
++    if (strcmp(url, "/session-info") != 0)
++        return NULL;
++
++    entries = ogs_strdup("");
++
++    ogs_list_for_each(&smf_self()->smf_ue_list, smf_ue) {
++        const char *imsi = smf_ue->supi;
++        if (imsi && strncmp(imsi, "imsi-", 5) == 0)
++            imsi += 5;
++        else if (!imsi)
++            imsi = "";
++
++        ogs_list_for_each(&smf_ue->sess_list, sess) {
++            char *ipv4 = NULL;
++            char *ipv6 = NULL;
++            char *sd_str = NULL;
++
++            if (sess->session.ue_ip.ipv4)
++                ipv4 = ogs_ipv4_to_string(sess->session.ue_ip.addr);
++            if (sess->session.ue_ip.ipv6)
++                ipv6 = ogs_ipv6addr_to_string(sess->session.ue_ip.addr6);
++            sd_str = ogs_s_nssai_sd_to_string(sess->s_nssai.sd);
++
++            tmp = ogs_msprintf(
++                "%s%s{"
++                "\"imsi\":\"%s\","
++                "\"dnn\":\"%s\","
++                "\"ipv4\":\"%s\","
++                "\"ipv6\":\"%s\","
++                "\"snssai\":{\"sst\":%d,\"sd\":\"%s\"}"
++                "}",
++                entries,
++                first ? "" : ",",
++                imsi,
++                sess->session.name ? sess->session.name : "",
++                ipv4 ? ipv4 : "",
++                ipv6 ? ipv6 : "",
++                (int)sess->s_nssai.sst,
++                sd_str ? sd_str : "");
++
++            ogs_free(entries);
++            entries = tmp;
++            first = false;
++
++            if (ipv4) ogs_free(ipv4);
++            if (ipv6) ogs_free(ipv6);
++            if (sd_str) ogs_free(sd_str);
++        }
++    }
++
++    out = ogs_msprintf("{\"sessions\":[%s]}", entries);
++    ogs_free(entries);
++    return out;
++}
++
++void smf_session_info_handler_register(void)
++{
++    ogs_metrics_set_custom_url_handler(session_info_handler);
++}
+diff --git a/src/smf/session-info.h b/src/smf/session-info.h
+new file mode 100644
+index 0000000..28d364b
+--- /dev/null
++++ b/src/smf/session-info.h
+@@ -0,0 +1,6 @@
++#ifndef SMF_SESSION_INFO_H
++#define SMF_SESSION_INFO_H
++
++void smf_session_info_handler_register(void);
++
++#endif /* SMF_SESSION_INFO_H */

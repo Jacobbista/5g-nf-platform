@@ -1,4 +1,4 @@
 {
   "_comment": "Canonical image tags. Updated by CI on each successful build.",
-  "smf":  "ghcr.io/jacobbista/5g-nf-platform/smf:2.7.5-p0"
+  "smf":  "ghcr.io/jacobbista/5g-nf-platform/smf:2.7.5-p1"
 }
