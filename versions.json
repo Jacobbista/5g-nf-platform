@@ -1,4 +1,13 @@
 {
   "_comment": "Canonical image tags. Updated by CI on each successful build.",
-  "smf":  "ghcr.io/jacobbista/5g-nf-platform/smf:2.7.5-p0"
+  "smf":  "ghcr.io/jacobbista/5g-nf-platform/smf:2.7.5-p0",
+  "amf":  "ghcr.io/jacobbista/5g-nf-platform/amf:2.7.5-p0",
+  "upf":  "ghcr.io/jacobbista/5g-nf-platform/upf:2.7.5-p0",
+  "udm":  "ghcr.io/jacobbista/5g-nf-platform/udm:2.7.5-p0",
+  "ausf": "ghcr.io/jacobbista/5g-nf-platform/ausf:2.7.5-p0",
+  "udr":  "ghcr.io/jacobbista/5g-nf-platform/udr:2.7.5-p0",
+  "nrf":  "ghcr.io/jacobbista/5g-nf-platform/nrf:2.7.5-p0",
+  "pcf":  "ghcr.io/jacobbista/5g-nf-platform/pcf:2.7.5-p0",
+  "bsf":  "ghcr.io/jacobbista/5g-nf-platform/bsf:2.7.5-p0",
+  "nssf": "ghcr.io/jacobbista/5g-nf-platform/nssf:2.7.5-p0"
 }
