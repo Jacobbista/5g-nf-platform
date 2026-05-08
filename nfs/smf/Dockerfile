@@ -36,12 +36,14 @@ RUN apt-get update && apt-get install -y \
     libsctp1 libgnutls30 libgcrypt20 libssl3 libidn2-0 \
     libmongoc-1.0-0 libbson-1.0-0 libyaml-0-2 libtalloc2 \
     libnghttp2-14 libmicrohttpd12 libtins4.0 \
-    libcurl4-gnutls curl \
+    libcurl4 curl \
     && rm -rf /var/lib/apt/lists/*
 
 ARG NF_NAME=smf
 COPY --from=builder /install/bin/open5gs-${NF_NAME}d /usr/local/bin/
 COPY --from=builder /install/lib/ /usr/local/lib/
+# copy gnutls curl variant that open5gs-smfd links against
+COPY --from=builder /usr/lib/x86_64-linux-gnu/libcurl-gnutls.so.4* /usr/lib/x86_64-linux-gnu/
 RUN ldconfig
 
 # All Open5GS NFs expose a management HTTP server on port 9090.
