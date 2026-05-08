@@ -29,11 +29,12 @@ RUN cd /src/open5gs && \
 ARG NF_NAME
 RUN cd /src/open5gs && \
     meson build --prefix=/install && \
-    ninja -C build install
+    ninja -C build install && \
+    ldd /install/bin/open5gs-${NF_NAME}d
 
 FROM ubuntu:22.04
 RUN apt-get update && apt-get install -y \
-    libsctp1 libgnutls30 libgcrypt20 libssl3 libidn2-0 \
+    libsctp1 libgnutls30 libgcrypt20 libssl3 libidn2-0 libidn11 \
     libmongoc-1.0-0 libbson-1.0-0 libyaml-0-2 libtalloc2 \
     libnghttp2-14 libmicrohttpd12 libtins4.0 \
     libcurl4 curl \
