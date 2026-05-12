@@ -46,4 +46,5 @@ RUN ldconfig
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -sf http://127.0.0.1:9090/ || exit 1
 
-ENTRYPOINT ["/bin/sh"]
+ENTRYPOINT ["/usr/local/bin/open5gs-amfd"]
+CMD ["-c", "/etc/open5gs/amf.yaml"]
