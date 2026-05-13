@@ -21,30 +21,30 @@ This makes it explicit which upstream release an image tracks and how many local
 
 ## Open5GS NFs
 
-The current core is built on [Open5GS](https://open5gs.org) v2.7.5. All standard 5G SA NFs are available.
+The current core is built on [Open5GS](https://open5gs.org) v2.7.7. All standard 5G SA NFs are available.
 
 | NF | Image | Patches |
 |----|-------|---------|
-| SMF | `ghcr.io/jacobbista/5g-nf-platform/smf:2.7.5-p1` | session-info endpoint |
-| AMF | `ghcr.io/jacobbista/5g-nf-platform/amf:2.7.5-p0` | — |
-| UPF | `ghcr.io/jacobbista/5g-nf-platform/upf:2.7.5-p0` | — |
-| UDM | `ghcr.io/jacobbista/5g-nf-platform/udm:2.7.5-p0` | — |
-| AUSF | `ghcr.io/jacobbista/5g-nf-platform/ausf:2.7.5-p0` | — |
-| UDR | `ghcr.io/jacobbista/5g-nf-platform/udr:2.7.5-p0` | — |
-| NRF | `ghcr.io/jacobbista/5g-nf-platform/nrf:2.7.5-p0` | — |
-| PCF | `ghcr.io/jacobbista/5g-nf-platform/pcf:2.7.5-p0` | — |
-| BSF | `ghcr.io/jacobbista/5g-nf-platform/bsf:2.7.5-p0` | — |
-| NSSF | `ghcr.io/jacobbista/5g-nf-platform/nssf:2.7.5-p0` | — |
+| SMF | `ghcr.io/jacobbista/5g-nf-platform/smf:2.7.7-p0` | — |
+| AMF | `ghcr.io/jacobbista/5g-nf-platform/amf:2.7.7-p0` | — |
+| UPF | `ghcr.io/jacobbista/5g-nf-platform/upf:2.7.7-p0` | — |
+| UDM | `ghcr.io/jacobbista/5g-nf-platform/udm:2.7.7-p0` | — |
+| AUSF | `ghcr.io/jacobbista/5g-nf-platform/ausf:2.7.7-p0` | — |
+| UDR | `ghcr.io/jacobbista/5g-nf-platform/udr:2.7.7-p0` | — |
+| NRF | `ghcr.io/jacobbista/5g-nf-platform/nrf:2.7.7-p0` | — |
+| PCF | `ghcr.io/jacobbista/5g-nf-platform/pcf:2.7.7-p0` | — |
+| BSF | `ghcr.io/jacobbista/5g-nf-platform/bsf:2.7.7-p0` | — |
+| NSSF | `ghcr.io/jacobbista/5g-nf-platform/nssf:2.7.7-p0` | — |
 
-### Patches
+### Native info endpoints (v2.7.7+)
 
-#### SMF — [`nfs/smf/patches/`](nfs/smf/patches/README.md)
+| NF | Endpoint | Content |
+|----|----------|---------|
+| SMF | `GET :9090/pdu-info` | Active PDU sessions — SUPI, DNN, IPs, S-NSSAI, QoS flows, N3 tunnel, state |
+| AMF | `GET :9090/ue-info` | Connected UEs — registration state, TAI, security, slices |
+| AMF | `GET :9090/gnb-info` | Connected gNBs — TAs, PLMNs, SCTP info |
 
-| Patch | Description |
-|-------|-------------|
-| `0001-session-info-endpoint.patch` | Adds `GET /session-info` on the metrics port (`:9090`). Returns active PDU sessions as JSON — IMSI, DNN, UE IP, S-NSSAI, UP connection state. |
-
-See [nfs/smf/patches/README.md](nfs/smf/patches/README.md) for full API spec and implementation notes.
+Supports pagination: `?page=0&page_size=100`.
 
 ---
 
@@ -52,11 +52,11 @@ See [nfs/smf/patches/README.md](nfs/smf/patches/README.md) for full API spec and
 
 ```sh
 # pull
-docker pull ghcr.io/jacobbista/5g-nf-platform/smf:2.7.5-p1
+docker pull ghcr.io/jacobbista/5g-nf-platform/smf:2.7.7-p0
 
 # build locally
 docker build \
-  --build-arg UPSTREAM_TAG=v2.7.5 \
+  --build-arg UPSTREAM_TAG=v2.7.7 \
   --build-arg NF_NAME=smf \
   -t smf-local \
   nfs/smf/
