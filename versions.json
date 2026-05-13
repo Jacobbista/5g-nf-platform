@@ -1,6 +1,6 @@
 {
   "_comment": "Canonical image tags. Updated by CI on each successful build.",
-  "smf": "ghcr.io/jacobbista/5g-nf-platform/smf:2.7.5-p1",
+  "smf": "ghcr.io/jacobbista/5g-nf-platform/smf:2.7.5-p0",
   "amf": "ghcr.io/jacobbista/5g-nf-platform/amf:2.7.5-p0",
   "upf": "ghcr.io/jacobbista/5g-nf-platform/upf:2.7.5-p0",
   "udm": "ghcr.io/jacobbista/5g-nf-platform/udm:2.7.5-p0",
