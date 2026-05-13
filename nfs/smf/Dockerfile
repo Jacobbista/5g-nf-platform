@@ -1,5 +1,6 @@
 # Baseline tested with v2.7.5 (version from original manual build).
 # v2.7.5 is the pinned default; update upstream-versions.json to change it.
+# cache-bust: fix session-info IPv6 cast
 ARG UPSTREAM_TAG=v2.7.5
 ARG NF_NAME=smf
 
