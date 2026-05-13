@@ -38,29 +38,13 @@ The current core is built on [Open5GS](https://open5gs.org) v2.7.5. All standard
 
 ### Patches
 
-#### SMF — `nfs/smf/patches/`
+#### SMF — [`nfs/smf/patches/`](nfs/smf/patches/README.md)
 
 | Patch | Description |
 |-------|-------------|
-| `0001-session-info-endpoint.patch` | Adds `GET /session-info` on the metrics port (`:9090`). Returns active PDU sessions as JSON — IMSI, DNN, UE IP, S-NSSAI. Used by the testbed dashboard to display live session state. |
+| `0001-session-info-endpoint.patch` | Adds `GET /session-info` on the metrics port (`:9090`). Returns active PDU sessions as JSON — IMSI, DNN, UE IP, S-NSSAI, UP connection state. |
 
-```sh
-curl http://<smf-addr>:9090/session-info
-```
-
-```json
-{
-  "sessions": [
-    {
-      "imsi": "001010123456786",
-      "dnn": "internet",
-      "ipv4": "10.45.0.6",
-      "ipv6": "",
-      "snssai": { "sst": 1, "sd": "000001" }
-    }
-  ]
-}
-```
+See [nfs/smf/patches/README.md](nfs/smf/patches/README.md) for full API spec and implementation notes.
 
 ---
 

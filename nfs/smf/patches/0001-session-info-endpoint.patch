@@ -103,13 +103,14 @@ index 12599f3..5b0b22c 100644
  libsmf = static_library('smf',
 diff --git a/src/smf/session-info.c b/src/smf/session-info.c
 new file mode 100644
-index 0000000..fed4c51
+index 0000000..f7c5f52
 --- /dev/null
 +++ b/src/smf/session-info.c
-@@ -0,0 +1,72 @@
+@@ -0,0 +1,77 @@
 +#include "ogs-app.h"
 +#include "context.h"
 +#include "session-info.h"
++#include "sbi/openapi/model/up_cnx_state.h"
 +
 +static char *session_info_handler(const char *url)
 +{
@@ -136,12 +137,14 @@ index 0000000..fed4c51
 +            char *ipv4 = NULL;
 +            char *ipv6 = NULL;
 +            char *sd_str = NULL;
++            const char *up_state = NULL;
 +
-+            if (sess->session.ue_ip.ipv4)
-+                ipv4 = ogs_ipv4_to_string(sess->session.ue_ip.addr);
-+            if (sess->session.ue_ip.ipv6)
-+                ipv6 = ogs_ipv6addr_to_string(sess->session.ue_ip.addr6);
++            if (sess->ipv4)
++                ipv4 = ogs_ipv4_to_string(sess->ipv4->addr[0]);
++            if (sess->ipv6)
++                ipv6 = ogs_ipv6addr_to_string(sess->ipv6->addr);
 +            sd_str = ogs_s_nssai_sd_to_string(sess->s_nssai.sd);
++            up_state = OpenAPI_up_cnx_state_ToString(sess->up_cnx_state);
 +
 +            tmp = ogs_msprintf(
 +                "%s%s{"
@@ -149,7 +152,8 @@ index 0000000..fed4c51
 +                "\"dnn\":\"%s\","
 +                "\"ipv4\":\"%s\","
 +                "\"ipv6\":\"%s\","
-+                "\"snssai\":{\"sst\":%d,\"sd\":\"%s\"}"
++                "\"snssai\":{\"sst\":%d,\"sd\":\"%s\"},"
++                "\"up_cnx_state\":\"%s\""
 +                "}",
 +                entries,
 +                first ? "" : ",",
@@ -158,7 +162,8 @@ index 0000000..fed4c51
 +                ipv4 ? ipv4 : "",
 +                ipv6 ? ipv6 : "",
 +                (int)sess->s_nssai.sst,
-+                sd_str ? sd_str : "");
++                sd_str ? sd_str : "",
++                up_state ? up_state : "");
 +
 +            ogs_free(entries);
 +            entries = tmp;
