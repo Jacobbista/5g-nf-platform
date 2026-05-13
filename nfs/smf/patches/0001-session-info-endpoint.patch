@@ -103,7 +103,7 @@ index 12599f3..5b0b22c 100644
  libsmf = static_library('smf',
 diff --git a/src/smf/session-info.c b/src/smf/session-info.c
 new file mode 100644
-index 0000000..f7c5f52
+index 0000000..6264fec
 --- /dev/null
 +++ b/src/smf/session-info.c
 @@ -0,0 +1,77 @@
@@ -142,7 +142,7 @@ index 0000000..f7c5f52
 +            if (sess->ipv4)
 +                ipv4 = ogs_ipv4_to_string(sess->ipv4->addr[0]);
 +            if (sess->ipv6)
-+                ipv6 = ogs_ipv6addr_to_string(sess->ipv6->addr);
++                ipv6 = ogs_ipv6addr_to_string((uint8_t *)sess->ipv6->addr);
 +            sd_str = ogs_s_nssai_sd_to_string(sess->s_nssai.sd);
 +            up_state = OpenAPI_up_cnx_state_ToString(sess->up_cnx_state);
 +
